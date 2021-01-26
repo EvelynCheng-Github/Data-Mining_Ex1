@@ -1,0 +1,23 @@
+---
+title: "Excercise1"
+author: "Evelyn Cheng"
+date: "2021/1/26"
+output: html_document
+---
+# ECO 395M: Data Mining and Statistical Learning  
+
+## Course details
+
+- Instructor: James Scott (james.scott@mccombs.utexas.edu)
+- Course website: http://www.github.com/jgscott/ECO395M/
+- Teaching assistant: Rui Zou (ruizuo11@utexas.edu)
+
+Office hours: Mondays and Wednesdays, 8:30 AM to 9:30 AM US Central time, via Zoom.  See our course's Canvas site for the link.  This time is not ideal for anyone, but it is the best compromise time I could come up with that would work across the huge range of time zones inhabited by students attending this course virtually: 
+- it's an uncommon class time.  
+- it's a normal start-of-the-day time for folks like me on US Central time.  
+- it's just stretching the bounds of plausibility for students on the west coast of the US (e.g. you could roll out of bed at 7 AM, grab a cup of coffee, and get some questions answered by 7:30 AM Pacific time).  
+- it's 10:30-11:30 PM in Beijing, which is definitely late, but a pretty common hour for graduate students to be up and working.  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
