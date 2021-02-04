@@ -1,0 +1,165 @@
+---
+title: "Excercise1"
+author: "Xiaohan Sun / Liyuan Zhang / Evelyn Cheng"
+date: "2021/2/3"
+output: word_document
+---
+# ECO 395M Homework 1: Xiaohan Sun / Liyuan Zhang / Evelyn Cheng 
+
+## 1) Data visualization: gas prices
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+GasPrices = read.csv('../data/GasPrices.csv')
+head(GasPrices)
+ggplot(data=GasPrices) + 
+  geom_boxplot(aes(x=Price, y=Competitors))
+```
+
+**Claim:** Gas stations charge more if they lack direct competition in sight.
+
+**Conclusion:** As the graph shows, the median price for gas stations that lacking competitors is higher than the one having competitors. Also, upper edge and upper quartile price are higher than the one having competitors. So, this claim is correct.
+
+```{r}
+summary(GasPrices$Income)
+ggplot(data=GasPrices) + 
+  geom_point(aes(x=Price, y=Income))+
+  ylim(12780,128560)
+```
+  
+**Claim:** The richer the area, the higher the gas price.
+
+**Conclusion:** As shown in the figure, when the income is higher, the dots will fall more on the right. The trend for this scatter plot is increasing. So, this claim is correct.
+
+```{r}
+ggplot(data=GasPrices) + 
+  geom_col(aes(x=Price, y=Brand))
+```
+  
+**Claim:** Shell charges less than other brands.
+
+**Conclusion:** In the bar chart, the bar of shell has lower price compared with Other brands. So, this claim is wrong.
+
+```{r}
+ggplot(data=GasPrices,aes(x=Price,fill=Stoplight))+geom_histogram(bins = 30, alpha=0.4, position = "identity")
+```
+
+**Claim:** Gas stations at stoplights charge more.
+
+**Conclusion:** The histogram present that the pick price for gas stations at stoplights (which is the blue one) is higher than the one doesn't (pink bars). So, this claim is correct.
+
+```{r}
+ggplot(data=GasPrices) + 
+  geom_boxplot(aes(x=Price, y=Highway))
+```
+
+
+**Claim:** Gas stations with direct highway access charge more.
+
+**Conclusion:** As the graph shows, the median price for gas stations  with direct highway access is higher than the one without. Also, upper quartile price are higher than the one without direct highway access. So, this claim is correct.
+
+## 4) K-nearest neighbors
+
+i. 350
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(mosaic)
+library(FNN)
+library(foreach)
+library(rsample)
+library(caret)
+library(modelr)
+library(parallel)
+
+sclass = read.csv('../data/sclass.csv')
+
+sclass350 = subset(sclass, trim == '350')
+
+sclass350_split = initial_split(sclass350, prop=0.9)
+sclass350_train = training(sclass350_split)
+sclass350_test  = testing(sclass350_split)
+
+k_grid = unique(round(exp(seq(log(80), log(2), length=5))))
+rmse_grid_out = foreach(k = k_grid, .combine='c') %do% {
+  knn_model = knnreg(price ~ mileage, data=sclass350_train, k = k, use.all=TRUE)
+  modelr::rmse(knn_model, sclass350_test)
+}
+rmse_grid_out = data.frame(K = k_grid, RMSE = rmse_grid_out)
+p_out = ggplot(data=rmse_grid_out) + 
+  theme_bw(base_size = 10) + 
+  geom_path(aes(x=K, y=RMSE, color='testset'), size=0.5)
+
+ind_best = which.min(rmse_grid_out$RMSE)
+k_best = k_grid[ind_best]
+
+rmse_grid_in = foreach(k = k_grid, .combine='c') %do% {
+  knn_model = knnreg(price ~ mileage, data=sclass350_train, k = k, use.all=TRUE)
+  modelr::rmse(knn_model, sclass350_train)
+}
+rmse_grid_in = data.frame(K = k_grid, RMSE = rmse_grid_in)
+p_out + geom_path(data=rmse_grid_in, aes(x=K, y=RMSE, color='trainset'),size=0.5) +
+  ylim(8000, 12000) +
+  scale_colour_manual(name="RMSE",
+                      values=c(testset="black", trainset="grey")) + 
+  geom_vline(xintercept=k_best, color='darkgreen', size=1) +
+  labs (titles = "K-nearest neighbors: test - 350")
+
+g0 = ggplot(data = sclass350) + 
+  geom_point(mapping = aes(x = price, y = mileage), color='darkgrey')
+knn13 = knnreg(sclass350_train$price, sclass350_train$mileage, k=5)
+knn13_pred = function(x) {
+  predict(knn13, newdata=data.frame(price=x))
+}
+g0 + stat_function(fun=knn13_pred, color='red')
+```
+
+ii. 65 AMG
+
+```{r}
+sclass65AMG = subset(sclass, trim == '65 AMG')
+
+sclass65AMG_split = initial_split(sclass65AMG, prop=0.9)
+sclass65AMG_train = training(sclass65AMG_split)
+sclass65AMG_test  = testing(sclass65AMG_split)
+
+rmse_grid_out2 = foreach(k = k_grid, .combine='c') %do% {
+  knn_model = knnreg(price ~ mileage, data=sclass65AMG_train, k = k, use.all=TRUE)
+  modelr::rmse(knn_model, sclass65AMG_test)
+}
+rmse_grid_out2 = data.frame(K = k_grid, RMSE = rmse_grid_out2)
+p_out = ggplot(data=rmse_grid_out2) + 
+  theme_bw(base_size = 10) + 
+  geom_path(aes(x=K, y=RMSE, color='testset'), size=0.5)
+
+ind_best = which.min(rmse_grid_out2$RMSE)
+k_best = k_grid[ind_best]
+
+rmse_grid_in2 = foreach(k = k_grid, .combine='c') %do% {
+  knn_model = knnreg(price ~ mileage, data=sclass65AMG_train, k = k, use.all=TRUE)
+  modelr::rmse(knn_model, sclass65AMG_train)
+}
+rmse_grid_in2 = data.frame(K = k_grid, RMSE = rmse_grid_in2)
+p_out + geom_path(data=rmse_grid_in2, aes(x=K, y=RMSE, color='trainset'),size=0.5) +
+  scale_colour_manual(name="RMSE",
+                      values=c(testset="black", trainset="grey")) + 
+  geom_vline(xintercept=k_best, color='darkgreen', size=1)+
+  labs (titles = "K-nearest neighbors: test - 65 AMG")
+
+g1 = ggplot(data = sclass65AMG) + 
+  geom_point(mapping = aes(x = price, y = mileage), color='darkgrey')
+knn5 = knnreg(sclass65AMG_train$price, sclass65AMG_train$mileage, k=5)
+knn5_pred = function(x) {
+  predict(knn5, newdata=data.frame(price=x))
+}
+g1 + stat_function(fun=knn5_pred, color='red')
+```
+
+350 trim yields a larger optimal value of K. Because in the plot of RMSE versus K, 350 trim has the higher K which is 13 while 65 AMG is 5.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
