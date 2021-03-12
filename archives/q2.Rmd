@@ -1,0 +1,63 @@
+---
+title: "Untitled"
+author: "Liyuan Zhang"
+date: "2021/2/6"
+output: word_document
+---
+```{r}
+library(tidyverse)
+library(ggplot2)
+bikeshare=read.csv('../Data/bikeshare.csv')
+```
+```{r}
+#plot A
+d1=bikeshare %>%
+  group_by(hr) %>%
+  summarize(bikeshare_mean=mean(total))
+
+ggplot(data=d1)+
+  geom_line(aes(x=hr,y=bikeshare_mean))+
+              labs(title="average bike rentals versus hour of the day",
+                   caption = "capitalbikeshare.com",
+                   x="hour of the day",
+                   y="average bike rentals")+
+  scale_x_continuous(breaks = 0:23)
+```
+
+* According to the graph, we can see that between 5:00pm-6:00pm there is the most popular time for renting bikes, with 8:00am being the second most popular.At 4 a.m., there is the least number of people rent bikes.
+```{r}
+#plot B
+d2=bikeshare %>%
+  group_by(workingday,hr) %>%
+  summarize(bikeshare_mean=mean(total))
+
+ggplot(data=d2)+
+  geom_line(aes(x=hr,y=bikeshare_mean))+
+  facet_wrap(~workingday,nrow = 2)+
+  labs(title="average bike rentals per hour whether it is a working day",
+       caption = "capitalbikeshare.com",
+       x="hour of the day",
+       y="average bike rentals")+
+  scale_x_continuous(breaks = 0:23)
+```
+
+* For non-working day, people will rent bike during 11:00am-4:00pm. However, there are two busy time plots for renting bike on the working day, they are 8:00am and 5:00pm.
+```{r}
+#plot C
+d3=bikeshare %>%
+  filter(hr==8) %>%
+  group_by(workingday,weathersit) %>%
+  summarize(bikeshare_mean=mean(total))
+
+ggplot(d3)+
+  geom_col(mapping=aes(x=weathersit,y=bikeshare_mean),
+           position = "dodge")+
+  facet_wrap(~workingday)+
+  labs(title="average ridership by weather situaion during 8AM",
+       caption = "capitalbikeshare.com",
+       x="weather situation",
+       y="average bike rentals")+
+  scale_x_continuous(breaks = 0:23)
+```
+
+*on the non-working day, most people rent the bike when the weather is clear,few clouds or partly cloudy during the 8:00am, and there are the least bike rent when the weather is light snow or light rain. However, on the working day, when the weather is clear, there still are the most rental bikes. comparing working day and non-working day, we recognize that the number of people renting bikes on working days is 5 times the number of people renting bikes on non-working days in the all weather situations.
